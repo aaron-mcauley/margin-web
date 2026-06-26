@@ -1,0 +1,108 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.app {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  background: white;
+  border-bottom: 1px solid #dcdcdc;
+  z-index: 100;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+}
+
+.toolButton {
+  width: 42px;
+  height: 42px;
+  border: 1px solid #111;
+  border-radius: 10px;
+  background: white;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.workspace {
+  height: 100vh;
+  overflow-y: auto;
+  padding-top: 64px;
+  display: flex;
+  justify-content: center;
+  background: #cfcfcf;
+}
+
+.notePage {
+  position: relative;
+  width: 794px;
+  min-height: 1123px;
+  margin: 32px 0;
+  background: #fff7b0;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+}
+
+.paperLines {
+  position: absolute;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      to right,
+      transparent 0,
+      transparent 72px,
+      rgba(255, 0, 0, 0.9) 72px,
+      rgba(255, 0, 0, 0.9) 73px,
+      transparent 73px
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 31px,
+      rgba(0, 90, 200, 0.35) 31px,
+      rgba(0, 90, 200, 0.35) 33px
+    );
+
+  pointer-events: none;
+}
+
+.canvasLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  touch-action: none;
+}
+
+.toolButton.active {
+  background: #111;
+  color: white;
+}

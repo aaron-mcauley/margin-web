@@ -1,122 +1,138 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from "react";
+import { Stage, Layer, Line } from "react-konva";
+import "./App.scss";
+
+type Tool = "pen" | "eraser";
+
+type Stroke = {
+  id: string;
+  points: number[];
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [tool, setTool] = useState<Tool>("pen");
+  const [strokes, setStrokes] = useState<Stroke[]>([]);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  const startDrawing = (e: any) => {
+  e.evt.preventDefault();
+
+  if (tool !== "pen") return;
+
+  const stage = e.target.getStage();
+  const point = stage?.getPointerPosition();
+
+  if (!point) return;
+
+  setIsDrawing(true);
+
+  setStrokes((prev) => [
+    ...prev,
+    {
+      id: `${Date.now()}-${Math.random()}`,
+      points: [point.x, point.y],
+    },
+  ]);
+};
+
+  const draw = (e: any) => {
+    e.evt.preventDefault();
+    const stage = e.target.getStage();
+    const point = stage.getPointerPosition();
+
+    if (!point) return;
+
+    if (tool === "eraser") {
+      setStrokes((prev) =>
+        prev.filter((stroke) => {
+          for (let i = 0; i < stroke.points.length; i += 2) {
+            const x = stroke.points[i];
+            const y = stroke.points[i + 1];
+            const distance = Math.hypot(point.x - x, point.y - y);
+
+            if (distance < 18) {
+              return false;
+            }
+          }
+
+          return true;
+        })
+      );
+
+      return;
+    }
+
+    if (!isDrawing) return;
+
+    setStrokes((prev) => {
+      const next = [...prev];
+      const lastStroke = next[next.length - 1];
+
+      lastStroke.points = lastStroke.points.concat([point.x, point.y]);
+
+      return next;
+    });
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app">
+      <nav className="navbar">
+        <div className="brand">Margin</div>
 
-      <div className="ticks"></div>
+        <div className="toolbar">
+          <button
+            className={`toolButton ${tool === "pen" ? "active" : ""}`}
+            onClick={() => setTool("pen")}
+          >
+            ✏️
+          </button>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+          <button
+            className={`toolButton ${tool === "eraser" ? "active" : ""}`}
+            onClick={() => setTool("eraser")}
+          >
+            🧽
+          </button>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      </nav>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <main className="workspace">
+        <section className="notePage">
+          <div className="paperLines"></div>
+
+          <Stage
+            className="canvasLayer"
+            width={794}
+            height={1123}
+            onMouseDown={startDrawing}
+            onMousemove={draw}
+            onMouseUp={stopDrawing}
+            onTouchStart={startDrawing}
+            onTouchMove={draw}
+            onTouchEnd={stopDrawing}
+          >
+            <Layer>
+              {strokes.map((stroke) => (
+                <Line
+                  key={stroke.id}
+                  points={stroke.points}
+                  stroke="#111"
+                  strokeWidth={4}
+                  tension={0.5}
+                  lineCap="round"
+                  lineJoin="round"
+                />
+              ))}
+            </Layer>
+          </Stage>
+        </section>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
