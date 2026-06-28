@@ -1,11 +1,8 @@
 import { Router } from "express";
+import { askAI } from "../controllers/ai.controller";
 
 const router = Router();
 
-router.post("/ask", (_req, res) => {
-    res.json({
-        answer: "Hello from the AI route",
-    });
-});
+router.post("/ask", askAI);
 
 export default router;

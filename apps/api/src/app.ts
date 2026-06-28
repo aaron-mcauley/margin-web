@@ -7,6 +7,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use("/api/ai", aiRoutes);
-app.use("/api/healh", healthRoutes);
+app.use("/api/health", healthRoutes);
 
 export default app;
