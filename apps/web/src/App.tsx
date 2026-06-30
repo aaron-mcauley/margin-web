@@ -13,6 +13,32 @@ function App() {
   const [tool, setTool] = useState<Tool>("pen");
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [aiAnswer, setAiAnswer] = useState("");
+
+const testBackendAI = async () => {
+  try {
+    console.log("testBackendAI running");
+    setAiAnswer("Loading...");
+
+    const payload = { prompt: "who is winning the france sweden match going on right now?" };
+
+    console.log("Payload:", payload);
+    const response = await fetch("http://localhost:3001/api/ai/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    console.log(data);
+
+    setAiAnswer(data.answer ?? data.error ?? "No response text");
+  } catch (error) {
+    console.error(error);
+    setAiAnswer(error instanceof Error ? error.message : "Request failed");
+  }
+};
 
   const startDrawing = (e: any) => {
   e.evt.preventDefault();
@@ -97,9 +123,20 @@ function App() {
           >
             🧽
           </button>
+          <button
+            className="toolButton"
+            onClick={() => {
+              console.log("AI clicked");
+              setAiAnswer("AI button clicked");
+              testBackendAI();
+  }}
+>
+  AI
+</button>
         </div>
       </nav>
-
+      
+      {aiAnswer && <div className="aiResponse">{aiAnswer}</div>}
       <main className="workspace">
         <section className="notePage">
           <div className="paperLines"></div>
@@ -109,7 +146,7 @@ function App() {
             width={794}
             height={1123}
             onMouseDown={startDrawing}
-            onMousemove={draw}
+            onMouseMove={draw}
             onMouseUp={stopDrawing}
             onTouchStart={startDrawing}
             onTouchMove={draw}

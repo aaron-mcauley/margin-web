@@ -32,10 +32,12 @@ export async function askOpenAI({ prompt, imageBase64 }: AskOpenAIInput) {
     }
 
     if (prompt) {
+        console.log("OpenAI text request starting");
         const response = await openai.responses.create({
             model: "gpt-5",
             input: prompt,
         });
+        console.log("OpenAI text request finished");
         return response.output_text;
     }
 
