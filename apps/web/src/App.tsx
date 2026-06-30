@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Stage, Layer, Line } from "react-konva";
+import type Konva from "konva";
 import "./App.scss";
 
 type Tool = "pen" | "eraser";
@@ -10,6 +11,7 @@ type Stroke = {
 };
 
 function App() {
+  const stageRef = useRef<Konva.Stage>(null);
   const [tool, setTool] = useState<Tool>("pen");
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [isDrawing, setIsDrawing] = useState(false);
@@ -37,6 +39,52 @@ const testBackendAI = async () => {
   } catch (error) {
     console.error(error);
     setAiAnswer(error instanceof Error ? error.message : "Request failed");
+  }
+};
+
+const testCanvasOCR = async () => {
+  try {
+    console.log("1. Started");
+    setAiAnswer("Reading Canvas...");
+
+    const imageBase64 = stageRef.current?.toDataURL({
+      mimeType: "image/png",
+      pixelRatio: 2,
+    });
+
+    console.log("2. Captured image");
+
+    if (!imageBase64) {
+      setAiAnswer("Could not capture canvas.");
+      return;
+    }
+
+    console.log("3. Image length:", imageBase64.length);
+
+    const payload = {
+      prompt: "Read the handwritten question in this image and give the answer",
+      imageBase64,
+    };
+
+    console.log("4. Payload ready");
+
+    const response = await fetch("http://localhost:3001/api/ai/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log("5. Fetch returned");
+
+    const data = await response.json();
+
+    console.log("6. JSON parsed", data);
+
+    setAiAnswer(data.answer ?? data.error ?? "No response");
+  } catch (err) {
+    console.error(err);
   }
 };
 
@@ -133,6 +181,8 @@ const testBackendAI = async () => {
 >
   AI
 </button>
+
+        <button className="toolButton" onClick={testCanvasOCR}>OCR</button>
         </div>
       </nav>
       
@@ -142,6 +192,7 @@ const testBackendAI = async () => {
           <div className="paperLines"></div>
 
           <Stage
+          ref={stageRef}
             className="canvasLayer"
             width={794}
             height={1123}
